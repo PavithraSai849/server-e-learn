@@ -17,8 +17,6 @@ app.use(
 
 app.use(express.json());
 
-//database connection
-
 //routes configuration
 
 app.use("/media", mediaRoutes);
