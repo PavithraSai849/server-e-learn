@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "https://lms-platform-bajr.vercel.app",
+    origin: process.env.CLIENT_URL || "https://e-learn-platform.vercel.app",
     methods: ["GET", "POST", "DELETE", "PUT"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
