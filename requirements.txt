@@ -1,0 +1,5 @@
+express
+cors
+multer
+dotenv
+cloudinary
