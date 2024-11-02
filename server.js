@@ -18,7 +18,6 @@ app.use(
 app.use(express.json());
 
 //routes configuration
-
 app.use("/media", mediaRoutes);
 app.use((err, req, res, next) => {
   console.log(err.stack);
