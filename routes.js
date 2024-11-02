@@ -1,27 +1,23 @@
 const express = require("express");
 const multer = require("multer");
-const fs = require("fs"); // Required to remove the temporary files after upload
-const {
-  uploadMediaToCloudinary,
-  deleteMediaFromCloudinary,
-} = require("./cloudinary");
+const { uploadMediaToCloudinary, deleteMediaFromCloudinary } = require("./cloudinary");
 
 const router = express.Router();
 
-// Multer configuration to handle video uploads
-const upload = multer({ dest: "uploads/" });
+// Multer configuration to handle video uploads using memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Single video upload route
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    const result = await uploadMediaToCloudinary(req.file.path);
-    // Remove temporary file after upload
-    fs.unlinkSync(req.file.path);
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
 
-    res.status(200).json({
-      success: true,
-      data: result,
-    });
+    // Upload to Cloudinary directly from memory
+    const result = await uploadMediaToCloudinary(req.file.buffer);
+    res.status(200).json({ success: true, data: result });
   } catch (e) {
     console.error(e);
     res.status(500).json({ success: false, message: "Error uploading video" });
@@ -41,7 +37,6 @@ router.delete("/delete/:id", async (req, res) => {
     }
 
     await deleteMediaFromCloudinary(id);
-
     res.status(200).json({
       success: true,
       message: "Video deleted successfully from Cloudinary",
@@ -56,18 +51,11 @@ router.delete("/delete/:id", async (req, res) => {
 router.post("/bulk-upload", upload.array("files", 10), async (req, res) => {
   try {
     const uploadPromises = req.files.map((fileItem) =>
-      uploadMediaToCloudinary(fileItem.path)
+      uploadMediaToCloudinary(fileItem.buffer)
     );
 
     const results = await Promise.all(uploadPromises);
-
-    // Remove temporary files after upload
-    req.files.forEach((file) => fs.unlinkSync(file.path));
-
-    res.status(200).json({
-      success: true,
-      data: results,
-    });
+    res.status(200).json({ success: true, data: results });
   } catch (event) {
     console.error(event);
     res.status(500).json({ success: false, message: "Error in bulk uploading videos" });
